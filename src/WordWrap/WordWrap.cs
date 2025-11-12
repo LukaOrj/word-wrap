@@ -1,4 +1,4 @@
-using System.Text;
+ using System.Text;
 
 namespace WordWrapLibrary;
 
@@ -6,7 +6,7 @@ public static class WordWrap
 {
     private static readonly char[] WhitespaceChars = new char[] { ' ', '\t', '\n', '\r' };
 
-    public static string WrapFormatted(string text, int width)
+    public static string WrapUnFormatted(string text, int width)
     {
         var wrap = new StringBuilder();
 
@@ -16,7 +16,7 @@ public static class WordWrap
             string chunk = text.Substring(i, remainingLength);
 
             wrap.Append(chunk);
-            wrap.Append('\n');
+            wrap.Append(Environment.NewLine);
         }
 
         return wrap.ToString();
@@ -62,33 +62,30 @@ public static class WordWrap
 
     private static string BuildWrappedText(string[] words, int width)
     {
-        var wrappedText = new StringBuilder(); // wrappedTextBuilder
-        var currentLine = new StringBuilder(); // currentLineBuilder
+        var wrappedTextBuilder = new StringBuilder();
+        var currentLineBuilder = new StringBuilder();
 
         foreach (var word in words)
         {
             if (IsWordTooLong(word, width))
             {
-                FlushCurrentLine(wrappedText, currentLine);
-                AppendLongWord(word, width, wrappedText, currentLine);
+                FlushCurrentLine(wrappedTextBuilder, currentLineBuilder);
+                AppendLongWord(word, width, wrappedTextBuilder, currentLineBuilder);
             }
             else
             {
-                if (CanFitWordOnLine(word, width, currentLine))
+                if (!CanFitWordOnLine(word, width, currentLineBuilder))
                 {
-                    AppendWordToLine(word, currentLine);
+                    FlushCurrentLine(wrappedTextBuilder, currentLineBuilder);
                 }
-                else
-                {
-                    FlushCurrentLine(wrappedText, currentLine);
-                    currentLine.Append(word);
-                }
+
+                AppendWordToLine(word, currentLineBuilder);
             }
         }
 
-        AppendRemainingLine(wrappedText, currentLine);
+        AppendRemainingLine(wrappedTextBuilder, currentLineBuilder);
 
-        return wrappedText.ToString();
+        return wrappedTextBuilder.ToString();
     }
 
     private static bool IsWordTooLong(string word, int width)
@@ -96,35 +93,35 @@ public static class WordWrap
         return word.Length > width;
     }
 
-    private static bool CanFitWordOnLine(string word, int width, StringBuilder currentLine)
+    private static bool CanFitWordOnLine(string word, int width, StringBuilder currentLineBuilder)
     {
-        int lineLengthWithWord = currentLine.Length == 0
+        int lineLengthWithWord = currentLineBuilder.Length == 0
             ? word.Length 
-            : currentLine.Length + 1 + word.Length;
+            : currentLineBuilder.Length + 1 + word.Length;
 
         return lineLengthWithWord <= width;
     }
 
-    private static void AppendWordToLine(string word, StringBuilder currentLine)
+    private static void AppendWordToLine(string word, StringBuilder currentLineBuilder)
     {
-        if (currentLine.Length > 0)
+        if (currentLineBuilder.Length > 0)
         {
-            currentLine.Append(' ');
+            currentLineBuilder.Append(' ');
         }
-        currentLine.Append(word);
+        currentLineBuilder.Append(word);
     }
 
-    private static void FlushCurrentLine(StringBuilder wrappedText, StringBuilder currentLine)
+    private static void FlushCurrentLine(StringBuilder wrappedTextBuilder, StringBuilder currentLineBuilder)
     {
-        if (currentLine.Length > 0)
+        if (currentLineBuilder.Length > 0)
         {
-            wrappedText.Append(currentLine.ToString());
-            wrappedText.Append(Environment.NewLine);
-            currentLine.Clear();
+            wrappedTextBuilder.Append(currentLineBuilder.ToString());
+            wrappedTextBuilder.Append(Environment.NewLine);
+            currentLineBuilder.Clear();
         }
     }
 
-    private static void AppendLongWord(string word, int width, StringBuilder wrappedText, StringBuilder currentLine)
+    private static void AppendLongWord(string word, int width, StringBuilder wrappedTextBuilder, StringBuilder currentLineBuilder)
     {
         for (int i = 0; i < word.Length; i += width)
         {
@@ -133,21 +130,21 @@ public static class WordWrap
              
             if (i + width < word.Length)
             {
-                wrappedText.Append(chunk);
-                wrappedText.Append(Environment.NewLine);
+                wrappedTextBuilder.Append(chunk);
+                wrappedTextBuilder.Append(Environment.NewLine);
             }
             else
             {
-                currentLine.Append(chunk);
+                currentLineBuilder.Append(chunk);
             }
         }
     }
 
-    private static void AppendRemainingLine(StringBuilder wrappedText, StringBuilder currentLine)
+    private static void AppendRemainingLine(StringBuilder wrappedTextBuilder, StringBuilder currentLineBuilder)
     {
-        if (currentLine.Length > 0)
+        if (currentLineBuilder.Length > 0)
         {
-            wrappedText.Append(currentLine.ToString());
+            wrappedTextBuilder.Append(currentLineBuilder.ToString());
         }
     }
 }
